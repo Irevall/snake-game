@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
+
     class snake {
         constructor() {
             this.currentDirection = "up";
-            this.location =  [{x:0, y:0}, {x:0, y:1}, {x:0, y:2}];
+            this.elementsToAdd = 0;
+            this.location =  [{x:240, y:135}, {x:240, y:134}, {x:240, y:133}, {x:240, y:132}, {x:240, y:131}];
             console.log(this);
         }
 
@@ -11,21 +13,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
             switch (this.currentDirection) {
                 case "up":
-                    snakeHead.y += 1;
+                    snakeHead.y -= 1;
                     break;
                 case "down":
-                    snakeHead.y -= 1;
+                    snakeHead.y += 1;
                     break;
                 case "right":
                     snakeHead.x += 1;
-                    break;
+                    break;z
                 case "left":
                     snakeHead.x -= 1;
                     break;
             }
 
             this.location.unshift(snakeHead);
-            this.location.pop();
+            if (this.elementsToAdd===0) {
+                this.location.pop();
+            } else {
+                this.elementsToAdd -= 1;
+            }
+        }
+
+        render() {
+            let canvas = document.querySelector('#myCanvas');
+            let ctx = canvas.getContext('2d');
+            let canvasData = ctx.createImageData(canvas.width, canvas.height);
+
+            this.location.forEach((element) => {
+                canvasData.data[(element.x + element.y * 480) * 4 + 3] = 255;
+            });
+
+            ctx.putImageData(canvasData, 0, 0);
         }
     }
 
@@ -33,4 +51,5 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(snakeTest);
     snakeTest.move();
     console.log(snakeTest);
+    snakeTest.render();
 });
