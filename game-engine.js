@@ -5,14 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
             this.currentDirection = "up";
             this.elementsToAdd = 0;
             this.size = 5;
-            this.location = [{x: 0, y: 135}, {x: 0, y: 140}];
+            this.location = [];
             this.speed = 50;
             this.score = 0;
-            // for (let i=0; i<20; i++) {
-            //     this.location.push({x:0, y:(135+(this.size*i))});
-            // }
+            for (let i=0; i<4; i++) {
+                this.location.push({x:240, y:(135+(this.size*i))});
+            }
             this.addMovementListeners();
-            console.log(this);
         }
 
         move() {
@@ -96,10 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             this.currentDirection = "left";
                         }
                         break;
-                    case "Enter":
-                        console.log(this.location);
-                        break;
-
                 }
             });
         }
@@ -128,14 +123,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         newLocation() {
-            console.log('penis');
             while (true) {
                 let x = parseInt(Math.random() * (480 / snakeTest.size)) * snakeTest.size;
                 let y = parseInt(Math.random() * (270 / snakeTest.size)) * snakeTest.size;
 
-
                 if (!snakeTest.location.some((element) => {
-                    console.log(element);
                     return (element.x === x && element.y === y)
                 })) {
                     return {x: x, y: y};
@@ -147,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let snakeTest = new snake;
     let apple = new apples;
-    console.log(apple);
     snakeTest.render();
     let startGame = setInterval(snakeTest.move.bind(snakeTest), snakeTest.speed);
 });
