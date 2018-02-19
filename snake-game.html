@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Snake game</title>
+    <link rel="stylesheet" type="text/css"  href="style.css"/>
     <script src="game-engine.js"></script>
 </head>
 <body>
     <h1>Snake game!</h1>
-    <h2>Current score: <span id="score">0</span></h2>
-    <canvas id="myCanvas" width="480" height="270" style="border:1px solid #000000;">
-    </canvas>
+    <h2 id="score" class="in-game">score: <span>0</span></h2>
+    <canvas id="myCanvas" width="480" height="270" style="border:1px solid #000000;"></canvas>
+    <h2 id="start-game">Press Enter to start the game.<br/>Move with WSAD.</h2>
+    <h2 id="try-again">Press Enter to try again.</h2>
 </body>
 </html>

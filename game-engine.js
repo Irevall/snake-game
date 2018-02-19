@@ -1,10 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // to do:
-    // 0. fix crash bug (if you go up and click left/right and down really quickly, you attempt to move backwards <into yourself>);
     // 1. smoother rendering
-    // 2. replay option
-    // 3. Different difficulties
-    // 4. Snake can eat himself on easy
+    // 2. Different difficulties
+    // 3. Snake can eat himself on easy
 
 
     class Game {
@@ -14,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.score = 0;
             this.size = 5;
             this.speed = 50;
+            this.gameOn = false;
             this.addMovementListeners();
         }
 
@@ -54,29 +53,48 @@ document.addEventListener('DOMContentLoaded', () => {
                             this.snake.currentDirection = "left";
                         }
                         break;
+                    case "Enter":
+                        if (!this.gameOn) {
+                            this.startGame();
+                        }
                 }
             });
         }
 
         eat() {
             this.snake.elementsToAdd += 5;
-            this.score += game.apple.points;
-            document.querySelector('#score').innerText = this.score;
+            this.score += this.apple.points;
+            document.querySelector('#score').querySelector('span').innerText = this.score;
             this.apple = new Apple;
 
         }
 
+        prepareGame() {
+            this.snake = new Snake;
+            this.apple = new Apple;
+            this.render();
+        }
+
         startGame() {
-            game.snake = new Snake;
-            game.apple = new Apple;
-            this.gameTimer = setInterval(() => {game.snake.move()}, this.speed);
+            this.prepareGame();
+            this.score = 0;
+            this.gameTimer = setInterval(() => {this.snake.move()}, this.speed);
+            document.querySelector('#score').querySelector('span').innerText = 0;
+            document.querySelector('#start-game').style.display = 'none';
+            document.querySelector('#try-again').style.display = 'none';
+            document.querySelector('#score').classList.add('in-game');
+            document.querySelector('#score').classList.remove('after-game');
+            this.gameOn = true;
         }
 
         endGame() {
             clearInterval(this.gameTimer);
             // this.ctx.fillStyle = "red";
             // this.ctx.fillRect(this.snake.location[0].x, this.snake.location[0].y, this.size, this.size);
-            alert('Game over!\nYour final score was: ' + this.score);
+            document.querySelector('#try-again').style.display = 'block';
+            document.querySelector('#score').classList.add('after-game');
+            document.querySelector('#score').classList.remove('in-game');
+            this.gameOn = false;
         }
     }
 
@@ -88,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.elementsToAdd = 0;
             this.location = [];
             for (let i=0; i<4; i++) {
-                this.location.push({x:240, y:(135+(game.size*i))});
+                this.location.push({x: game.canvas.width / 2, y: (game.canvas.height / 2 +(game.size * i))});
             }
             this.currentDirection = "up";
             this.previousDirection = "up";
@@ -146,8 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         newLocation() {
             while (true) {
-                let x = parseInt(Math.random() * (480 / game.size)) * game.size;
-                let y = parseInt(Math.random() * (270 / game.size)) * game.size;
+                let x = parseInt(Math.random() * (game.canvas.width / game.size)) * game.size;
+                let y = parseInt(Math.random() * (game.canvas.height / game.size)) * game.size;
 
                 if (!game.snake.location.some((element) => {
                         return (element.x === x && element.y === y)
@@ -160,6 +178,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let game = new Game;
-    game.startGame();
-
 });

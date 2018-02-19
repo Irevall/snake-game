@@ -1,0 +1,12 @@
+.in-game:before {
+    content: 'Current ';
+}
+
+.after-game:before {
+    content: 'Final ';
+}
+
+#try-again {
+    display: none;
+}
+
