@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ctx = this.canvas.getContext('2d');
             this.score = 0;
             this.size = 5;
-            this.speed = 10;
+            this.speed = 15;
             this.gameOn = false;
             this.addMovementListeners();
         }
@@ -29,45 +29,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         moveRender() {
-            let snakeLength = this.snake.body.length;
-            let head = this.snake.body[0];
-            let tail = this.snake.body[snakeLength - 1];
-
             for (let i = 0; i < game.size; i++) {
                 setTimeout(() => {
-                    this.ctx.fillStyle = "black";
-
-                    switch (head.direction) {
-                        case "up":
-                            this.ctx.fillRect(head.x, (head.y + this.size - i - 1), this.size, 1);
-                            break;
-                        case "left":
-                            this.ctx.fillRect((head.x + this.size - i - 1), head.y, 1, this.size);
-                            break;
-                        case "down":
-                            this.ctx.fillRect(head.x, (head.y + i), this.size, 1);
-                            break;
-                        case "right":
-                            this.ctx.fillRect((head.x + i), head.y, 1, this.size);
-                            break;
+                    this.headRender(i);
+                    if (this.snake.elementsToAdd===0) {
+                        this.tailRender(i);
                     }
-
-                    this.ctx.fillStyle = 'white';
-                    switch (this.snake.body[snakeLength - 2].direction) {
-                        case "up":
-                            this.ctx.fillRect(tail.x, (tail.y + this.size - i - 1), this.size, 1);
-                            break;
-                        case "left":
-                            this.ctx.fillRect((tail.x + this.size - i - 1), tail.y, 1, this.size);
-                            break;
-                        case "down":
-                            this.ctx.fillRect(tail.x, (tail.y + i), this.size, 1);
-                            break;
-                        case "right":
-                            this.ctx.fillRect((tail.x + i), tail.y, 1, this.size);
-                            break;
+                    if (i===4) {
+                        if (this.snake.elementsToAdd===0) {
+                            this.snake.body.pop();
+                        } else {
+                            this.snake.elementsToAdd -= 1;
+                        }
                     }
                 }, (game.speed  * i));
+            }
+        }
+
+        headRender(frame) {
+            let snakeLength = this.snake.body.length;
+            let head = this.snake.body[0];
+
+            this.ctx.fillStyle = "black";
+
+            switch (head.direction) {
+                case "up":
+                    this.ctx.fillRect(head.x, (head.y + this.size - frame - 1), this.size, 1);
+                    break;
+                case "left":
+                    this.ctx.fillRect((head.x + this.size - frame - 1), head.y, 1, this.size);
+                    break;
+                case "down":
+                    this.ctx.fillRect(head.x, (head.y + frame), this.size, 1);
+                    break;
+                case "right":
+                    this.ctx.fillRect((head.x + frame), head.y, 1, this.size);
+                    break;
+            }
+        }
+
+        tailRender(frame) {
+            let snakeLength = this.snake.body.length;
+            let tail = this.snake.body[snakeLength - 1];
+
+            this.ctx.fillStyle = 'white';
+
+            switch (this.snake.body[snakeLength - 2].direction) {
+                case "up":
+                    this.ctx.fillRect(tail.x, (tail.y + this.size - frame - 1), this.size, 1);
+                    break;
+                case "left":
+                    this.ctx.fillRect((tail.x + this.size - frame - 1), tail.y, 1, this.size);
+                    break;
+                case "down":
+                    this.ctx.fillRect(tail.x, (tail.y + frame), this.size, 1);
+                    break;
+                case "right":
+                    this.ctx.fillRect((tail.x + frame), tail.y, 1, this.size);
+                    break;
             }
         }
 
@@ -103,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         eat() {
-            this.snake.elementsToAdd += 5;
+            this.snake.elementsToAdd += 3;
             this.score += this.apple.points;
             document.querySelector('#score').querySelector('span').innerText = this.score;
             this.apple = new Apple;
@@ -121,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startGame() {
             this.prepareGame();
             this.score = 0;
-            this.gameTimer = setInterval(() => {this.snake.move()}, this.speed * this.size);
+            this.gameTimer = setInterval(() => {this.snake.move()}, this.speed * (this.size + 1));
             document.querySelector('#score').querySelector('span').innerText = 0;
             document.querySelector('#start-game').style.display = 'none';
             document.querySelector('#try-again').style.display = 'none';
@@ -147,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         constructor() {
             this.elementsToAdd = 0;
             this.body = [];
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 6; i++) {
                 this.body.push({x: game.canvas.width / 2, y: (game.canvas.height / 2 + i * game.size), direction: "up"});
             }
             this.direction = "up";
@@ -187,8 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             this.body.unshift(snakeHead);
             game.moveRender();
-            this.body.pop();
-            console.log('body length: ' + this.body.length);
         }
 
         doesCollide(arg) {
@@ -200,11 +217,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     class Apple {
         constructor() {
-            this.body = this.newbody();
+            this.body = this.newLocation();
             this.points = 10;
         }
 
-        newbody() {
+        newLocation() {
             while (true) {
                 let x = parseInt(Math.random() * (game.canvas.width / game.size)) * game.size;
                 let y = parseInt(Math.random() * (game.canvas.height / game.size)) * game.size;
