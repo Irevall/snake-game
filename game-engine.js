@@ -10,8 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
             this.canvas = document.querySelector('#myCanvas');
             this.ctx = this.canvas.getContext('2d');
             this.score = 0;
-            this.size = 5;
-            this.speed = 15;
+            this.size = 10;
+            this.speed = 1;
             this.gameOn = false;
             this.addMovementListeners();
         }
@@ -28,66 +28,73 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ctx.fillRect(this.apple.body.x, this.apple.body.y, this.size, this.size);
         }
 
-        moveRender() {
+        async moveRender() {
             for (let i = 0; i < game.size; i++) {
-                setTimeout(() => {
-                    this.headRender(i);
-                    if (this.snake.elementsToAdd===0) {
-                        this.tailRender(i);
+                await this.headRender(i);
+                await this.tailRender(i);
+                if (i === (game.size-1)) {
+                    if (this.snake.elementsToAdd === 0) {
+                        this.snake.body.pop();
+                    } else {
+                        this.snake.elementsToAdd -= 1;
                     }
-                    if (i===4) {
-                        if (this.snake.elementsToAdd===0) {
-                            this.snake.body.pop();
-                        } else {
-                            this.snake.elementsToAdd -= 1;
-                        }
-                    }
-                }, (game.speed  * i));
+                }
             }
+            this.snake.move();
         }
 
         headRender(frame) {
-            let snakeLength = this.snake.body.length;
-            let head = this.snake.body[0];
+            return new Promise((resolve) => {
+                let snakeLength = this.snake.body.length;
+                let head = this.snake.body[0];
 
-            this.ctx.fillStyle = "black";
+                this.ctx.fillStyle = "black";
 
-            switch (head.direction) {
-                case "up":
-                    this.ctx.fillRect(head.x, (head.y + this.size - frame - 1), this.size, 1);
-                    break;
-                case "left":
-                    this.ctx.fillRect((head.x + this.size - frame - 1), head.y, 1, this.size);
-                    break;
-                case "down":
-                    this.ctx.fillRect(head.x, (head.y + frame), this.size, 1);
-                    break;
-                case "right":
-                    this.ctx.fillRect((head.x + frame), head.y, 1, this.size);
-                    break;
-            }
+                switch (head.direction) {
+                    case "up":
+                        this.ctx.fillRect(head.x, (head.y + this.size - frame - 1), this.size, 1);
+                        break;
+                    case "left":
+                        this.ctx.fillRect((head.x + this.size - frame - 1), head.y, 1, this.size);
+                        break;
+                    case "down":
+                        this.ctx.fillRect(head.x, (head.y + frame), this.size, 1);
+                        break;
+                    case "right":
+                        this.ctx.fillRect((head.x + frame), head.y, 1, this.size);
+                        break;
+                }
+                setTimeout(() => resolve('Moved head by 1 frame'), game.speed);
+            });
         }
 
         tailRender(frame) {
-            let snakeLength = this.snake.body.length;
-            let tail = this.snake.body[snakeLength - 1];
+            return new Promise((resolve) => {
+                let snakeLength = this.snake.body.length;
+                let tail = this.snake.body[snakeLength - 1];
 
-            this.ctx.fillStyle = 'white';
+                if (this.snake.elementsToAdd === 0) {
+                    this.ctx.fillStyle = 'white';
+                } else {
+                    this.ctx.fillStyle = 'black';
+                }
 
-            switch (this.snake.body[snakeLength - 2].direction) {
-                case "up":
-                    this.ctx.fillRect(tail.x, (tail.y + this.size - frame - 1), this.size, 1);
-                    break;
-                case "left":
-                    this.ctx.fillRect((tail.x + this.size - frame - 1), tail.y, 1, this.size);
-                    break;
-                case "down":
-                    this.ctx.fillRect(tail.x, (tail.y + frame), this.size, 1);
-                    break;
-                case "right":
-                    this.ctx.fillRect((tail.x + frame), tail.y, 1, this.size);
-                    break;
-            }
+                switch (this.snake.body[snakeLength - 2].direction) {
+                    case "up":
+                        this.ctx.fillRect(tail.x, (tail.y + this.size - frame - 1), this.size, 1);
+                        break;
+                    case "left":
+                        this.ctx.fillRect((tail.x + this.size - frame - 1), tail.y, 1, this.size);
+                        break;
+                    case "down":
+                        this.ctx.fillRect(tail.x, (tail.y + frame), this.size, 1);
+                        break;
+                    case "right":
+                        this.ctx.fillRect((tail.x + frame), tail.y, 1, this.size);
+                        break;
+                }
+                setTimeout(() => resolve('Moved tail by 1 frame'), game.speed);
+            });
         }
 
         addMovementListeners() {
@@ -117,6 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (!this.gameOn) {
                             this.startGame();
                         }
+                        break;
+                    case "KeyO":
+                        console.log('xd');
+                        this.snake.move();
                 }
             });
         }
@@ -140,17 +151,16 @@ document.addEventListener('DOMContentLoaded', () => {
         startGame() {
             this.prepareGame();
             this.score = 0;
-            this.gameTimer = setInterval(() => {this.snake.move()}, this.speed * (this.size + 1));
+            this.gameOn = true;
+            this.snake.move();
             document.querySelector('#score').querySelector('span').innerText = 0;
             document.querySelector('#start-game').style.display = 'none';
             document.querySelector('#try-again').style.display = 'none';
             document.querySelector('#score').classList.add('in-game');
             document.querySelector('#score').classList.remove('after-game');
-            this.gameOn = true;
         }
 
         endGame() {
-            clearInterval(this.gameTimer);
             document.querySelector('#try-again').style.display = 'block';
             document.querySelector('#score').classList.add('after-game');
             document.querySelector('#score').classList.remove('in-game');
@@ -179,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (snakeHead.x === game.apple.body.x && snakeHead.y === game.apple.body.y) {
                 game.eat();
             }
-            
+
             switch (this.direction) {
                 case "up":
                     snakeHead.y -= game.size;
@@ -197,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             snakeHead.direction = this.direction;
 
-            if (snakeHead.x < 0 || snakeHead.x > game.canvas.width-(game.size) || snakeHead.y < 0 || snakeHead.y > game.canvas.height-(game.size) || this.doesCollide(snakeHead)) {
+            if (snakeHead.x < 0 || snakeHead.x > game.canvas.width - (game.size) || snakeHead.y < 0 || snakeHead.y > game.canvas.height - (game.size) || this.doesCollide(snakeHead)) {
                 game.endGame();
                 return false;
             }
