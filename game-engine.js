@@ -11,47 +11,66 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ctx = this.canvas.getContext('2d');
             this.score = 0;
             this.size = 10;
-            this.speed = 0;
-            this.direction = "up";
+            this.speed = 8;
+            this.direction = 'up';
             this.wallWalkThrough = false;
             this.tailEat = false;
             this.gameOn = false;
+            this.firstTimeStamp = 0;
+            this.howManyToFullSquare = 10;
+            this.pixelsDrawn = 0;
+            this.gameRequestID = 0;
             this.addOptionsListeners();
             this.addMovementListeners();
         }
 
-        initialRender() {
-            this.ctx.fillStyle = "white";
-            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            this.ctx.fillStyle = "black";
-            this.snake.body.forEach((element) => {
-                this.ctx.fillRect(element.x, element.y, this.size, this.size);
-            });
-
-            this.ctx.fillStyle = "red";
-            this.ctx.fillRect(this.apple.body.x, this.apple.body.y, this.size, this.size);
+        drawSquare(x, y, color) {
+            this.ctx.fillStyle = color;
+            this.ctx.fillRect(x, y, this.size, this.size);
         }
 
-        async moveRender() {
-            for (let i = 0; i < game.size; i++) {
-                this.headRender(i);
-                this.tailRender(i);
-                // await delay(this.speed);
-                if (i === (game.size - 1)) {
-                    if (this.snake.elementsToAdd === 0) {
+        initialRender() {
+            this.ctx.fillStyle = 'white';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            this.snake.body.forEach((element) => {
+                this.drawSquare(element.x, element.y, 'black')
+            });
+            this.drawSquare(this.apple.body.x, this.apple.body.y, 'red');
+        }
+
+        looper(pixelsToDraw) {
+            while (pixelsToDraw > 0) {
+                if (pixelsToDraw > this.howManyToFullSquare) {
+                    this.draw(this.howManyToFullSquare);
+                    pixelsToDraw -= this.howManyToFullSquare;
+                    this.howManyToFullSquare = this.size;
+                } else {
+                    this.draw(pixelsToDraw);
+                    this.howManyToFullSquare -= pixelsToDraw;
+                    pixelsToDraw -= this.howManyToFullSquare;
+                    pixelsToDraw = 0;
+                }
+            }
+        }
+
+        draw(count) {
+            if (this.howManyToFullSquare===this.size) {
+                if (this.pixelsDrawn!==0) {
+                    if (this.snake.elementsToAdd===0) {
                         this.snake.body.pop();
                     } else {
                         this.snake.elementsToAdd -= 1;
                     }
                 }
+                this.newHeadAndChecker();
             }
-            this.move();
+            this.headRender(count + (this.size - this.howManyToFullSquare));
+            this.tailRender(count + (this.size - this.howManyToFullSquare));
         }
 
-        async move() {
+        newHeadAndChecker() {
             let snakeHead = Object.assign({}, this.snake.body[0]);
             snakeHead.direction = this.direction;
-
 
             if (snakeHead.x === game.apple.body.x && snakeHead.y === game.apple.body.y) {
                 this.eat();
@@ -64,25 +83,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     console.log('wall walk through not done yet')
                 }
-
             }
 
             switch (this.direction) {
-                case "up":
+                case 'up':
                     snakeHead.y -= game.size;
                     break;
-                case "down":
+                case 'down':
                     snakeHead.y += game.size;
                     break;
-                case "right":
+                case 'right':
                     snakeHead.x += game.size;
                     break;
-                case "left":
+                case 'left':
                     snakeHead.x -= game.size;
                     break;
             }
 
-            let collideIndex = this.snake.doesCollide(snakeHead);
+            let collideIndex = this.doesCollide(snakeHead);
             if (collideIndex !== -1) {
                 if (this.tailEat===false) {
                     this.endGame();
@@ -90,61 +108,67 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     console.log('eating own tail not done yet');
                     console.log(collideIndex);
-                    let toClear = this.snake.body.slice(collideIndex+1);
-                    this.ctx.fillStyle = "white";
-                    toClear.forEach((element) => {
-                        this.ctx.fillRect(element.x, element.y, this.size, this.size);
-                    });
+                    this.snake.cutOffBody = this.snake.body.slice(collideIndex+1);
                     this.snake.body.splice(collideIndex, this.snake.body.length-collideIndex);
                 }
             }
-
             this.snake.body.unshift(snakeHead);
-            this.moveRender();
+
+            if (this.snake.cutOffBody.length !== 0) {
+                let lastElement = this.snake.cutOffBody[this.snake.cutOffBody.length - 1];
+                let secondToLastElement = this.snake.cutOffBody[this.snake.cutOffBody.length - 2];
+                if (secondToLastElement!==undefined) {
+                    this.ctx.fillStyle = 'grey';
+                    this.ctx.fillRect(secondToLastElement.x, secondToLastElement.y, this.size, this.size);
+                }
+                this.ctx.fillStyle = 'white';
+                this.ctx.fillRect(lastElement.x, lastElement.y, this.size, this.size);
+                this.snake.cutOffBody.pop();
+            }
         }
 
-        headRender(frame) {
-                let head = this.snake.body[0];
-                this.ctx.fillStyle = "black";
+        doesCollide(tempHead) {
+            return this.snake.body.findIndex((element) => {
+                return (element.x === tempHead.x && element.y === tempHead.y);
+            });
+        }
 
+        headRender(pixels) {
+                let head = this.snake.body[0];
+                this.ctx.fillStyle = 'black';
                 switch (head.direction) {
-                    case "up":
-                        this.ctx.fillRect(head.x, (head.y + this.size - frame - 1), this.size, 1);
+                    case 'up':
+                        this.ctx.fillRect(head.x, (head.y + this.size - pixels), this.size, pixels);
                         break;
-                    case "left":
-                        this.ctx.fillRect((head.x + this.size - frame - 1), head.y, 1, this.size);
+                    case 'left':
+                        this.ctx.fillRect((head.x + this.size - pixels), head.y, pixels, this.size);
                         break;
-                    case "down":
-                        this.ctx.fillRect(head.x, (head.y + frame), this.size, 1);
+                    case 'down':
+                        this.ctx.fillRect(head.x, head.y, this.size, pixels);
                         break;
-                    case "right":
-                        this.ctx.fillRect((head.x + frame), head.y, 1, this.size);
+                    case 'right':
+                        this.ctx.fillRect(head.x, head.y, pixels, this.size);
                         break;
                 }
         }
 
-        tailRender(frame) {
+        tailRender(pixels) {
                 let snakeLength = this.snake.body.length;
                 let tail = this.snake.body[snakeLength - 1];
-
-                if (this.snake.elementsToAdd === 0) {
-                    this.ctx.fillStyle = 'white';
-                } else {
-                    this.ctx.fillStyle = 'black';
-                }
+                this.ctx.fillStyle = 'white';
 
                 switch (this.snake.body[snakeLength - 2].direction) {
-                    case "up":
-                        this.ctx.fillRect(tail.x, (tail.y + this.size - frame - 1), this.size, 1);
+                    case 'up':
+                        this.ctx.fillRect(tail.x, (tail.y + this.size - pixels), this.size, pixels);
                         break;
-                    case "left":
-                        this.ctx.fillRect((tail.x + this.size - frame - 1), tail.y, 1, this.size);
+                    case 'left':
+                        this.ctx.fillRect((tail.x + this.size - pixels), tail.y, pixels, this.size);
                         break;
-                    case "down":
-                        this.ctx.fillRect(tail.x, (tail.y + frame), this.size, 1);
+                    case 'down':
+                        this.ctx.fillRect(tail.x, tail.y, this.size, pixels);
                         break;
-                    case "right":
-                        this.ctx.fillRect((tail.x + frame), tail.y, 1, this.size);
+                    case 'right':
+                        this.ctx.fillRect(tail.x, tail.y, pixels, this.size);
                         break;
                 }
         }
@@ -194,38 +218,47 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-
         addMovementListeners() {
             document.addEventListener('keydown', (e) => {
                 switch (e.code) {
-                    case "KeyW":
-                        if (this.snake.body[0].direction !== "down") {
-                            this.direction = "up";
+                    case 'KeyW':
+                        if (this.snake.body[0].direction !== 'down') {
+                            this.direction = 'up';
                         }
                         break;
-                    case "KeyS":
-                        if (this.snake.body[0].direction !== "up") {
-                            this.direction = "down";
+                    case 'KeyS':
+                        if (this.snake.body[0].direction !== 'up') {
+                            this.direction = 'down';
                         }
                         break;
-                    case "KeyD":
-                        if (this.snake.body[0].direction !== "left") {
-                            this.direction = "right";
+                    case 'KeyD':
+                        if (this.snake.body[0].direction !== 'left') {
+                            this.direction = 'right';
                         }
                         break;
-                    case "KeyA":
-                        if (this.snake.body[0].direction !== "right") {
-                            this.direction = "left";
+                    case 'KeyA':
+                        if (this.snake.body[0].direction !== 'right') {
+                            this.direction = 'left';
                         }
                         break;
-                    case "Enter":
+                    case 'Enter':
                         if (!this.gameOn) {
                             this.startGame();
                         }
                         break;
-                    case "KeyO":
-                        console.log('xd');
-                        this.move();
+                    case 'KeyO':
+                        this.endGame();
+                        break;
+                    case 'KeyP':
+                        if (this.gameOn===true) {
+                            this.gameOn = false;
+                            window.cancelAnimationFrame(this.gameRequestID);
+                        } else {
+                            this.gameOn = true;
+                            this.firstTimeStamp = 0;
+                            window.requestAnimationFrame(game.step);
+                        }
+                        break;
                 }
             });
         }
@@ -235,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.score += this.apple.points;
             document.querySelector('#score').querySelector('span').innerText = this.score;
             this.apple = new Apple;
-            this.ctx.fillStyle = "red";
+            this.ctx.fillStyle = 'red';
             this.ctx.fillRect(this.apple.body.x, this.apple.body.y, this.size, this.size);
 
         }
@@ -250,20 +283,42 @@ document.addEventListener('DOMContentLoaded', () => {
             this.prepareGame();
             this.score = 0;
             this.gameOn = true;
+            window.requestAnimationFrame(this.step);
             document.querySelector('#score').querySelector('span').innerText = 0;
             document.querySelector('#start-game').style.display = 'none';
             document.querySelector('#try-again').style.display = 'none';
             document.querySelector('#score').classList.add('in-game');
             document.querySelector('#score').classList.remove('after-game');
-            this.move();
         }
 
         endGame() {
             this.gameOn = false;
             this.direction = 'up';
+            window.cancelAnimationFrame(this.frameRequestID);
             document.querySelector('#try-again').style.display = 'block';
             document.querySelector('#score').classList.add('after-game');
             document.querySelector('#score').classList.remove('in-game');
+        }
+
+        step(tFrame) {
+            if (game.firstTimeStamp===0) {
+                game.firstTimeStamp = tFrame;
+            }
+
+            if (game.gameOn === false) {
+                return false;
+            }
+
+            let pixelsToDraw = Math.round((tFrame - game.firstTimeStamp) / game.speed) - game.pixelsDrawn;
+            if (pixelsToDraw===0) {
+                game.frameRequestID = window.requestAnimationFrame(game.step);
+                console.log('Drawing: 0 pixels');
+                return false;
+            }
+            console.log('Drawing: ' + pixelsToDraw + ' pixels');
+            game.looper(pixelsToDraw);
+            game.pixelsDrawn += pixelsToDraw;
+            game.frameRequestID = window.requestAnimationFrame(game.step);
         }
     }
 
@@ -274,20 +329,10 @@ document.addEventListener('DOMContentLoaded', () => {
         constructor() {
             this.elementsToAdd = 0;
             this.body = [];
-            for (let i = 0; i < 20; i++) {
-                this.body.push({x: game.canvas.width / 2, y: (game.canvas.height / 2 + i * game.size), direction: "up"});
+            this.cutOffBody = [];
+            for (let i = 0; i < 15; i++) {
+                this.body.push({x: game.canvas.width / 2, y: (game.canvas.height / 2 + i * game.size), direction: 'up'});
             }
-        }
-
-        doesCollide(arg) {
-            let collisionIndex = -1;
-            this.body.forEach((element, index) => {
-                if (element.x === arg.x && element.y === arg.y) {
-                    collisionIndex = index;
-                    return true;
-                }
-            });
-            return collisionIndex;
         }
     }
 
@@ -310,12 +355,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-    }
-
-    function delay (ms) {
-        return new Promise(resolve => {
-            setTimeout(resolve, ms)
-        });
     }
 
     let game = new Game;
