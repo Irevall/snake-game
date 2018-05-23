@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ctx = this.canvas.getContext('2d');
             this.score = 0;
             this.size = 10;
-            this.speed = 8;
+            this.speed = 1;
             this.direction = 'up';
             this.wallWalkThrough = false;
             this.tailEat = false;
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         looper(pixelsToDraw) {
-            while (pixelsToDraw > 0) {
+            while (pixelsToDraw > 0 && this.gameOn === true) {
                 if (pixelsToDraw > this.howManyToFullSquare) {
                     this.draw(this.howManyToFullSquare);
                     pixelsToDraw -= this.howManyToFullSquare;
@@ -156,7 +156,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 let snakeLength = this.snake.body.length;
                 let tail = this.snake.body[snakeLength - 1];
                 this.ctx.fillStyle = 'white';
-
                 switch (this.snake.body[snakeLength - 2].direction) {
                     case 'up':
                         this.ctx.fillRect(tail.x, (tail.y + this.size - pixels), this.size, pixels);
@@ -264,12 +263,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         eat() {
-            this.snake.elementsToAdd += 3;
+            this.snake.elementsToAdd += this.apple.worth;
             this.score += this.apple.points;
             document.querySelector('#score').querySelector('span').innerText = this.score;
             this.apple = new Apple;
-            this.ctx.fillStyle = 'red';
-            this.ctx.fillRect(this.apple.body.x, this.apple.body.y, this.size, this.size);
 
         }
 
@@ -283,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.prepareGame();
             this.score = 0;
             this.gameOn = true;
+            this.direction = 'up';
             window.requestAnimationFrame(this.step);
             document.querySelector('#score').querySelector('span').innerText = 0;
             document.querySelector('#start-game').style.display = 'none';
@@ -293,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         endGame() {
             this.gameOn = false;
-            this.direction = 'up';
+            this.firstTimeStamp = 0;
             window.cancelAnimationFrame(this.frameRequestID);
             document.querySelector('#try-again').style.display = 'block';
             document.querySelector('#score').classList.add('after-game');
@@ -312,10 +310,10 @@ document.addEventListener('DOMContentLoaded', () => {
             let pixelsToDraw = Math.round((tFrame - game.firstTimeStamp) / game.speed) - game.pixelsDrawn;
             if (pixelsToDraw===0) {
                 game.frameRequestID = window.requestAnimationFrame(game.step);
-                console.log('Drawing: 0 pixels');
+                // console.log('Drawing: 0 pixels');
                 return false;
             }
-            console.log('Drawing: ' + pixelsToDraw + ' pixels');
+            // console.log('Drawing: ' + pixelsToDraw + ' pixels');
             game.looper(pixelsToDraw);
             game.pixelsDrawn += pixelsToDraw;
             game.frameRequestID = window.requestAnimationFrame(game.step);
@@ -340,6 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
         constructor() {
             this.body = this.newLocation();
             this.points = 10;
+            this.worth = 3;
         }
 
         newLocation() {
@@ -350,9 +349,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!game.snake.body.some((element) => {
                         return (element.x === x && element.y === y)
                     })) {
+                    game.ctx.fillStyle = 'red';
+                    game.ctx.fillRect(x, y, game.size, game.size);
                     return {x: x, y: y};
                 }
             }
+
+
         }
 
     }
