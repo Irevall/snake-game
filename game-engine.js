@@ -10,11 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
             this.canvas = document.querySelector('#myCanvas');
             this.ctx = this.canvas.getContext('2d');
             this.score = 0;
-            this.size = 10;
+            this.size = 20;
             this.speed = 8;
             this.direction = 'up';
-            this.wallWalkThrough = false;
-            this.tailEat = false;
+            this.wallWalkThrough = true;
+            this.tailEat = true;
             this.gameOn = false;
             this.firstTimeStamp = 0;
             this.howManyToFullSquare = 10;
@@ -39,6 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         looper(pixelsToDraw) {
+            if (this.snake.cutOffBody.length !== 0 ) {
+                // this.drawCutOff(Math.ceil(pixelsToDraw / 3));
+                this.drawCutOff();
+            }
+
             while (pixelsToDraw > 0 && this.gameOn === true) {
                 if (pixelsToDraw > this.howManyToFullSquare) {
                     this.draw(this.howManyToFullSquare);
@@ -51,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     pixelsToDraw = 0;
                 }
             }
+
         }
 
         draw(count) {
@@ -68,21 +74,59 @@ document.addEventListener('DOMContentLoaded', () => {
             this.tailRender(count + (this.size - this.howManyToFullSquare));
         }
 
+        // drawCutOff(count) {
+        //     while (count>0) {
+        //         if (this.snake.cutOffBody.length > 0) {
+        //             let element = this.snake.cutOffBody[this.snake.cutOffBody.length - 1];
+        //             this.drawSquare(element.x, element.y, '#767676')
+        //             this.snake.greyCutOffBody.push(element);
+        //             this.snake.cutOffBody.pop();
+        //         }
+        //
+        //         if (this.snake.greyCutOffBody.length > 0) {
+        //             let element = this.snake.greyCutOffBody[0];
+        //             this.drawSquare(element.x, element.y, 'white');
+        //             this.snake.greyCutOffBody.pop();
+        //         }
+        //         count--;
+        //     }
+        // }
+
+        drawCutOff() {
+            this.snake.cutOffBody.forEach((array, index) => {
+                let color = array[1];
+                switch (color) {
+                    case 0:
+                        color = '#4c4c4c';
+                        break;
+                    case 1:
+                        color = '#757575';
+                        break;
+                    case 2:
+                        color = '#a8a8a8';
+                        break;
+                    case 3:
+                        color = '#FFFFFF';
+                        break;
+                }
+
+                array[0].forEach((element) => {
+                    this.drawSquare(element.x, element.y, color);
+                });
+                array[1]++;
+
+                if (array[1] === 4) {
+                    this.snake.cutOffBody.shift();
+                }
+            });
+        }
+
         newHeadAndChecker() {
             let snakeHead = Object.assign({}, this.snake.body[0]);
             snakeHead.direction = this.direction;
 
             if (snakeHead.x === game.apple.body.x && snakeHead.y === game.apple.body.y) {
                 this.eat();
-            }
-
-            if (snakeHead.x < 0 || snakeHead.x > game.canvas.width - (game.size) || snakeHead.y < 0 || snakeHead.y > game.canvas.height - (game.size)) {
-                if (this.wallWalkThrough===false) {
-                    this.endGame();
-                    return false;
-                } else {
-                    console.log('wall walk through not done yet')
-                }
             }
 
             switch (this.direction) {
@@ -100,31 +144,58 @@ document.addEventListener('DOMContentLoaded', () => {
                     break;
             }
 
+            if (snakeHead.x < 0 || snakeHead.x > game.canvas.width - (game.size) || snakeHead.y < 0 || snakeHead.y > game.canvas.height - (game.size)) {
+                if (this.wallWalkThrough===false) {
+                    this.endGame();
+                    return false;
+                } else {
+                    if (snakeHead.x < 0) {
+                        snakeHead.x = game.canvas.width - (game.size);
+                    } else if (snakeHead.x > game.canvas.width - (game.size)) {
+                        snakeHead.x = 0;
+                    } else if (snakeHead.y < 0) {
+                        snakeHead.y = game.canvas.height - (game.size);
+                    } else if (snakeHead.y > game.canvas.height - (game.size)) {
+                        snakeHead.y = 0;
+                    }
+
+                }
+            }
+
             let collideIndex = this.doesCollide(snakeHead);
             if (collideIndex !== -1) {
                 if (this.tailEat===false) {
                     this.endGame();
                     return false;
                 } else {
-                    console.log('eating own tail not done yet');
                     console.log(collideIndex);
-                    this.snake.cutOffBody = this.snake.body.slice(collideIndex+1);
+                    // let temp = this.snake.body.slice(collideIndex+1);
+                    // for (let i = (temp.length - 1); i >= 0; i--) {
+                    //     this.snake.cutOffBody.unshift(temp[i]);
+                    // }
+                    // temp.forEach((element, index) => {
+                    //
+                    // });
+                    // this.snake.cutOffBody = this.snake.body.slice(collideIndex+1);
+                    this.snake.cutOffBody.push([]);
+                    this.snake.cutOffBody[this.snake.cutOffBody.length - 1].push(this.snake.body.slice(collideIndex+1));
+                    this.snake.cutOffBody[this.snake.cutOffBody.length - 1].push(0);
                     this.snake.body.splice(collideIndex, this.snake.body.length-collideIndex);
                 }
             }
             this.snake.body.unshift(snakeHead);
 
-            if (this.snake.cutOffBody.length !== 0) {
-                let lastElement = this.snake.cutOffBody[this.snake.cutOffBody.length - 1];
-                let secondToLastElement = this.snake.cutOffBody[this.snake.cutOffBody.length - 2];
-                if (secondToLastElement!==undefined) {
-                    this.ctx.fillStyle = 'grey';
-                    this.ctx.fillRect(secondToLastElement.x, secondToLastElement.y, this.size, this.size);
-                }
-                this.ctx.fillStyle = 'white';
-                this.ctx.fillRect(lastElement.x, lastElement.y, this.size, this.size);
-                this.snake.cutOffBody.pop();
-            }
+            // if (this.snake.cutOffBody.length !== 0) {
+            //     let lastElement = this.snake.cutOffBody[this.snake.cutOffBody.length - 1];
+            //     let secondToLastElement = this.snake.cutOffBody[this.snake.cutOffBody.length - 2];
+            //     if (secondToLastElement!==undefined) {
+            //         this.ctx.fillStyle = 'grey';
+            //         this.ctx.fillRect(secondToLastElement.x, secondToLastElement.y, this.size, this.size);
+            //     }
+            //     this.ctx.fillStyle = 'white';
+            //     this.ctx.fillRect(lastElement.x, lastElement.y, this.size, this.size);
+            //     this.snake.cutOffBody.pop();
+            // }
         }
 
         doesCollide(tempHead) {
@@ -172,6 +243,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
         }
 
+        // cutOffRender(pixels) {
+        //     let cutOffLength = this.snake.cutOffBody.length;
+        //     let previousTail = this.snake.cutOffBody[cutOffLength - 1];
+        //     this.ctx.fillStyle = 'white';
+        //
+        //     switch (this.snake.cutOffBody[cutOffLength - 2].direction) {
+        //         case 'up':
+        //             this.ctx.fillRect(tail.x, (tail.y + this.size - pixels), this.size, pixels);
+        //             break;
+        //         case 'left':
+        //             this.ctx.fillRect((tail.x + this.size - pixels), tail.y, pixels, this.size);
+        //             break;
+        //         case 'down':
+        //             this.ctx.fillRect(tail.x, tail.y, this.size, pixels);
+        //             break;
+        //         case 'right':
+        //             this.ctx.fillRect(tail.x, tail.y, pixels, this.size);
+        //             break;
+        //     }
+        // }
 
         setSnakeSize(size) {
             this.size = parseInt(size);
@@ -279,6 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startGame() {
             this.prepareGame();
             this.score = 0;
+            this.firstTimeStamp = 0;
             this.gameOn = true;
             this.direction = 'up';
             window.requestAnimationFrame(this.step);
@@ -291,7 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         endGame() {
             this.gameOn = false;
-            this.firstTimeStamp = 0;
             window.cancelAnimationFrame(this.frameRequestID);
             document.querySelector('#try-again').style.display = 'block';
             document.querySelector('#score').classList.add('after-game');
@@ -328,7 +419,8 @@ document.addEventListener('DOMContentLoaded', () => {
             this.elementsToAdd = 0;
             this.body = [];
             this.cutOffBody = [];
-            for (let i = 0; i < 15; i++) {
+            // this.greyCutOffBody = [];
+            for (let i = 0; i < 30; i++) {
                 this.body.push({x: game.canvas.width / 2, y: (game.canvas.height / 2 + i * game.size), direction: 'up'});
             }
         }
@@ -338,7 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
         constructor() {
             this.body = this.newLocation();
             this.points = 10;
-            this.worth = 3;
+            this.worth = 15;
         }
 
         newLocation() {
