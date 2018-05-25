@@ -10,10 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
             this.canvas = document.querySelector('#myCanvas');
             this.ctx = this.canvas.getContext('2d');
             this.score = 0;
-            this.size = 20;
+            this.size = 10;
             this.speed = 8;
             this.direction = 'up';
-            this.wallWalkThrough = true;
+            this.wallWalkThrough = false;
             this.tailEat = true;
             this.gameOn = false;
             this.firstTimeStamp = 0;
@@ -168,7 +168,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.endGame();
                     return false;
                 } else {
-                    console.log(collideIndex);
                     // let temp = this.snake.body.slice(collideIndex+1);
                     // for (let i = (temp.length - 1); i >= 0; i--) {
                     //     this.snake.cutOffBody.unshift(temp[i]);
@@ -420,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.body = [];
             this.cutOffBody = [];
             // this.greyCutOffBody = [];
-            for (let i = 0; i < 30; i++) {
+            for (let i = 0; i < 15; i++) {
                 this.body.push({x: game.canvas.width / 2, y: (game.canvas.height / 2 + i * game.size), direction: 'up'});
             }
         }
@@ -430,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
         constructor() {
             this.body = this.newLocation();
             this.points = 10;
-            this.worth = 15;
+            this.worth = 5;
         }
 
         newLocation() {
