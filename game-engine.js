@@ -333,6 +333,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     case 'Enter':
                         if (!this.gameOn) {
                             this.startGame();
+                        } else {
+                            console.log('Pressed Enter');
+
+                            this.gameOn = false;
+                            window.cancelAnimationFrame(this.gameRequestID);
+
+                            console.log('Popping confirm');
+
+                            let answer = confirm('Are you sure you want to restart the game?');
+
+                            console.log('Popped confirm');
+
+                            if (answer === true) {
+                                this.endGame();
+                                this.startGame();
+                            } else {
+                                console.log('Chose cancel');
+
+                                this.firstTimeStamp = 0;
+                                this.gameOn = true;
+                                window.requestAnimationFrame(game.step);
+                            }
                         }
                         break;
                     case 'KeyO':
@@ -391,6 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
         step(tFrame) {
             if (game.firstTimeStamp===0) {
                 game.firstTimeStamp = tFrame;
+                game.pixelsDrawn = 0;
             }
 
             if (game.gameOn === false) {
@@ -398,6 +421,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             let pixelsToDraw = Math.round((tFrame - game.firstTimeStamp) / game.speed) - game.pixelsDrawn;
+            console.log('Pixels to draw: ' + pixelsToDraw);
+            console.log('Timestamp: ' + tFrame);
+            console.log('First timestamp: ' + game.firstTimeStamp);
+            console.log('Pixels already drawn: ' + game.pixelsDrawn);
             if (pixelsToDraw===0) {
                 game.frameRequestID = window.requestAnimationFrame(game.step);
                 // console.log('Drawing: 0 pixels');
