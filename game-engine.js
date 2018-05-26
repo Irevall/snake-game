@@ -1,8 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // to do:
     // 0. Make classes prettier
-    // 1. Snake can eat himself
-    // 2. Snake can go through walls
+    // 1. Fix double popup
 
 
     class Game {
@@ -16,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.wallWalkThrough = false;
             this.tailEat = true;
             this.gameOn = false;
+            this.pauseOn = false;
             this.firstTimeStamp = 0;
             this.howManyToFullSquare = 10;
             this.pixelsDrawn = 0;
@@ -40,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         looper(pixelsToDraw) {
             if (this.snake.cutOffBody.length !== 0 ) {
-                // this.drawCutOff(Math.ceil(pixelsToDraw / 3));
                 this.drawCutOff();
             }
 
@@ -74,23 +73,44 @@ document.addEventListener('DOMContentLoaded', () => {
             this.tailRender(count + (this.size - this.howManyToFullSquare));
         }
 
-        // drawCutOff(count) {
-        //     while (count>0) {
-        //         if (this.snake.cutOffBody.length > 0) {
-        //             let element = this.snake.cutOffBody[this.snake.cutOffBody.length - 1];
-        //             this.drawSquare(element.x, element.y, '#767676')
-        //             this.snake.greyCutOffBody.push(element);
-        //             this.snake.cutOffBody.pop();
-        //         }
-        //
-        //         if (this.snake.greyCutOffBody.length > 0) {
-        //             let element = this.snake.greyCutOffBody[0];
-        //             this.drawSquare(element.x, element.y, 'white');
-        //             this.snake.greyCutOffBody.pop();
-        //         }
-        //         count--;
-        //     }
-        // }
+        headRender(pixels) {
+            let head = this.snake.body[0];
+            this.ctx.fillStyle = 'black';
+            switch (head.direction) {
+                case 'up':
+                    this.ctx.fillRect(head.x, (head.y + this.size - pixels), this.size, pixels);
+                    break;
+                case 'left':
+                    this.ctx.fillRect((head.x + this.size - pixels), head.y, pixels, this.size);
+                    break;
+                case 'down':
+                    this.ctx.fillRect(head.x, head.y, this.size, pixels);
+                    break;
+                case 'right':
+                    this.ctx.fillRect(head.x, head.y, pixels, this.size);
+                    break;
+            }
+        }
+
+        tailRender(pixels) {
+            let snakeLength = this.snake.body.length;
+            let tail = this.snake.body[snakeLength - 1];
+            this.ctx.fillStyle = 'white';
+            switch (this.snake.body[snakeLength - 2].direction) {
+                case 'up':
+                    this.ctx.fillRect(tail.x, (tail.y + this.size - pixels), this.size, pixels);
+                    break;
+                case 'left':
+                    this.ctx.fillRect((tail.x + this.size - pixels), tail.y, pixels, this.size);
+                    break;
+                case 'down':
+                    this.ctx.fillRect(tail.x, tail.y, this.size, pixels);
+                    break;
+                case 'right':
+                    this.ctx.fillRect(tail.x, tail.y, pixels, this.size);
+                    break;
+            }
+        }
 
         drawCutOff() {
             this.snake.cutOffBody.forEach((array, index) => {
@@ -168,14 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.endGame();
                     return false;
                 } else {
-                    // let temp = this.snake.body.slice(collideIndex+1);
-                    // for (let i = (temp.length - 1); i >= 0; i--) {
-                    //     this.snake.cutOffBody.unshift(temp[i]);
-                    // }
-                    // temp.forEach((element, index) => {
-                    //
-                    // });
-                    // this.snake.cutOffBody = this.snake.body.slice(collideIndex+1);
                     this.snake.cutOffBody.push([]);
                     this.snake.cutOffBody[this.snake.cutOffBody.length - 1].push(this.snake.body.slice(collideIndex+1));
                     this.snake.cutOffBody[this.snake.cutOffBody.length - 1].push(0);
@@ -183,18 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             this.snake.body.unshift(snakeHead);
-
-            // if (this.snake.cutOffBody.length !== 0) {
-            //     let lastElement = this.snake.cutOffBody[this.snake.cutOffBody.length - 1];
-            //     let secondToLastElement = this.snake.cutOffBody[this.snake.cutOffBody.length - 2];
-            //     if (secondToLastElement!==undefined) {
-            //         this.ctx.fillStyle = 'grey';
-            //         this.ctx.fillRect(secondToLastElement.x, secondToLastElement.y, this.size, this.size);
-            //     }
-            //     this.ctx.fillStyle = 'white';
-            //     this.ctx.fillRect(lastElement.x, lastElement.y, this.size, this.size);
-            //     this.snake.cutOffBody.pop();
-            // }
         }
 
         doesCollide(tempHead) {
@@ -203,72 +203,42 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        headRender(pixels) {
-                let head = this.snake.body[0];
-                this.ctx.fillStyle = 'black';
-                switch (head.direction) {
-                    case 'up':
-                        this.ctx.fillRect(head.x, (head.y + this.size - pixels), this.size, pixels);
-                        break;
-                    case 'left':
-                        this.ctx.fillRect((head.x + this.size - pixels), head.y, pixels, this.size);
-                        break;
-                    case 'down':
-                        this.ctx.fillRect(head.x, head.y, this.size, pixels);
-                        break;
-                    case 'right':
-                        this.ctx.fillRect(head.x, head.y, pixels, this.size);
-                        break;
-                }
-        }
-
-        tailRender(pixels) {
-                let snakeLength = this.snake.body.length;
-                let tail = this.snake.body[snakeLength - 1];
-                this.ctx.fillStyle = 'white';
-                switch (this.snake.body[snakeLength - 2].direction) {
-                    case 'up':
-                        this.ctx.fillRect(tail.x, (tail.y + this.size - pixels), this.size, pixels);
-                        break;
-                    case 'left':
-                        this.ctx.fillRect((tail.x + this.size - pixels), tail.y, pixels, this.size);
-                        break;
-                    case 'down':
-                        this.ctx.fillRect(tail.x, tail.y, this.size, pixels);
-                        break;
-                    case 'right':
-                        this.ctx.fillRect(tail.x, tail.y, pixels, this.size);
-                        break;
-                }
-        }
-
-        // cutOffRender(pixels) {
-        //     let cutOffLength = this.snake.cutOffBody.length;
-        //     let previousTail = this.snake.cutOffBody[cutOffLength - 1];
-        //     this.ctx.fillStyle = 'white';
-        //
-        //     switch (this.snake.cutOffBody[cutOffLength - 2].direction) {
-        //         case 'up':
-        //             this.ctx.fillRect(tail.x, (tail.y + this.size - pixels), this.size, pixels);
-        //             break;
-        //         case 'left':
-        //             this.ctx.fillRect((tail.x + this.size - pixels), tail.y, pixels, this.size);
-        //             break;
-        //         case 'down':
-        //             this.ctx.fillRect(tail.x, tail.y, this.size, pixels);
-        //             break;
-        //         case 'right':
-        //             this.ctx.fillRect(tail.x, tail.y, pixels, this.size);
-        //             break;
-        //     }
-        // }
-
         setSnakeSize(size) {
             this.size = parseInt(size);
         }
 
         setSnakeSpeed(speed) {
             this.speed = parseInt(speed);
+        }
+
+        browserResize() {
+            let browserSize = {
+                width: window.innerWidth || document.body.clientWidth,
+                height: window.innerHeight || document.body.clientHeight
+            };
+
+            let desiredSize = {
+                width: 800,
+                height: 600
+            };
+
+            if (browserSize.width < 800 || browserSize.height < 600) {
+                if (browserSize.width >= 8 / 6 * browserSize.height) {
+                    desiredSize.height = browserSize.height - (browserSize.height % 20);
+                    desiredSize.width = browserSize.height * 8 / 6 - ((browserSize.height * 8 / 6) % 20);
+                } else {
+                    desiredSize.width = browserSize.width - (browserSize.width % 20);
+                    desiredSize.height = browserSize.width * 6 / 8 - ((browserSize.width * 6 / 8) % 20);
+                }
+            }
+
+            if (desiredSize.width < 380) {
+                alert('It\'s strongly advised to use larger window.');
+            }
+
+            this.canvas.width = desiredSize.width;
+            this.canvas.height = desiredSize.height;
+            document.querySelector('body').style.setProperty('width', (desiredSize.width + 'px'));
         }
 
         addOptionsListeners() {
@@ -281,10 +251,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             document.querySelector('#options').addEventListener('click', (e) => {
-               let parent = e.srcElement.parentElement;
-               if (e.srcElement.className!=='option-name' && this.gameOn===false) {
+                let parent = e.srcElement.parentElement;
+                if (e.srcElement.className !== 'option-name' && parent.tagName !== 'DIV' && this.gameOn === false) {
                     parent.querySelectorAll('span').forEach((el, index) => {
-                        if (index!==0) {
+                        if (index !== 0) {
                             el.classList.remove('selected');
                         }
                     });
@@ -304,6 +274,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             break;
                     }
                }
+            });
+
+            window.addEventListener('resize', () => {
+                if (this.gameOn === false) {
+                    this.browserResize();
+                }
             });
         }
 
@@ -334,38 +310,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (!this.gameOn) {
                             this.startGame();
                         } else {
-                            console.log('Pressed Enter');
-
-                            this.gameOn = false;
-                            window.cancelAnimationFrame(this.gameRequestID);
-
-                            console.log('Popping confirm');
-
-                            let answer = confirm('Are you sure you want to restart the game?');
-
-                            console.log('Popped confirm');
-
-                            if (answer === true) {
-                                this.endGame();
-                                this.startGame();
-                            } else {
-                                console.log('Chose cancel');
-
-                                this.firstTimeStamp = 0;
-                                this.gameOn = true;
-                                window.requestAnimationFrame(game.step);
-                            }
+                            this.endGame();
+                            this.startGame();
                         }
                         break;
                     case 'KeyO':
                         this.endGame();
                         break;
                     case 'KeyP':
-                        if (this.gameOn===true) {
-                            this.gameOn = false;
+                        if (this.pauseOn === false && this.gameOn === true) {
+                            this.pauseOn = true;
                             window.cancelAnimationFrame(this.gameRequestID);
-                        } else {
-                            this.gameOn = true;
+                        } else if (this.pauseOn === true && this.gameOn === true){
+                            this.pauseOn = false;
                             this.firstTimeStamp = 0;
                             window.requestAnimationFrame(game.step);
                         }
@@ -411,20 +368,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         step(tFrame) {
-            if (game.firstTimeStamp===0) {
+            if (game.firstTimeStamp === 0) {
                 game.firstTimeStamp = tFrame;
                 game.pixelsDrawn = 0;
             }
 
-            if (game.gameOn === false) {
+            if (game.gameOn === false || game.pauseOn === true) {
                 return false;
             }
 
             let pixelsToDraw = Math.round((tFrame - game.firstTimeStamp) / game.speed) - game.pixelsDrawn;
-            console.log('Pixels to draw: ' + pixelsToDraw);
-            console.log('Timestamp: ' + tFrame);
-            console.log('First timestamp: ' + game.firstTimeStamp);
-            console.log('Pixels already drawn: ' + game.pixelsDrawn);
             if (pixelsToDraw===0) {
                 game.frameRequestID = window.requestAnimationFrame(game.step);
                 // console.log('Drawing: 0 pixels');
@@ -445,7 +398,6 @@ document.addEventListener('DOMContentLoaded', () => {
             this.elementsToAdd = 0;
             this.body = [];
             this.cutOffBody = [];
-            // this.greyCutOffBody = [];
             for (let i = 0; i < 15; i++) {
                 this.body.push({x: game.canvas.width / 2, y: (game.canvas.height / 2 + i * game.size), direction: 'up'});
             }
@@ -479,4 +431,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let game = new Game;
+    game.browserResize();
 });

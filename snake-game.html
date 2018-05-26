@@ -9,17 +9,19 @@
     <script src="game-engine.js"></script>
 </head>
 <body>
-    <h1>Snake game!</h1>
-    <h2 id="score" class="in-game">score: <span>0</span></h2>
-    <canvas id="myCanvas" width="800" height="600" style="border:1px solid #000000;"></canvas>
-    <h2 id="start-game">Press Enter to start the game.<br/>Move with WSAD.</h2>
-    <h2 id="try-again">Press Enter to try again.</h2>
-    <h2 id="option-pop">Game options</h2>
-    <div id="options" style="display: none;">
-        <h3 id="option-size"><span class="option-name">Snake size:</span> <span data-value="5">5px</span> <span class="selected" data-value="10">10px</span> <span data-value="20">20px</span></h3>
-        <h3 id="option-speed"><span class="option-name">Snake speed:</span> <span data-value="16">Slow</span> <span class="selected" data-value="8">Medium</span> <span data-value="4">Fast</span></h3>
-        <h3 id="option-wall"><span class="option-name">Wall is game over:</span> <span class="selected" data-value="1">Yes</span> <span data-value="0">No</span></h3>
-        <h3 id="option-tail"><span class="option-name">Snake can eat his tail:</span> <span class="selected" data-value="1">Yes</span> <span data-value="0">No</span></h3>
+    <div id="container">
+        <h1>Snake game!</h1>
+        <h2 id="score" class="in-game">score: <span>0</span></h2>
+        <canvas id="myCanvas" width="800" height="600" style="border:1px solid #000000;"></canvas>
+        <h2 id="start-game">Press Enter to start or restart the game.<br/>Move with WSAD.<br/>Paue/unpause with P.</h2>
+        <h2 id="try-again">Press Enter to try again.</h2>
+        <h2 id="option-pop">Game options</h2>
+        <div id="options" style="display: none;">
+            <h3 id="option-size"><span class="option-name">Snake size:</span> <span data-value="5">5px</span> <span class="selected" data-value="10">10px</span> <span data-value="20">20px</span></h3>
+            <h3 id="option-speed"><span class="option-name">Snake speed:</span> <span data-value="16">Slow</span> <span class="selected" data-value="8">Medium</span> <span data-value="4">Fast</span></h3>
+            <h3 id="option-wall"><span class="option-name">Wall is game over:</span> <span class="selected" data-value="1">Yes</span> <span data-value="0">No</span></h3>
+            <h3 id="option-tail"><span class="option-name">Snake can eat his tail:</span> <span class="selected" data-value="1">Yes</span> <span data-value="0">No</span></h3>
+        </div>
     </div>
 </body>
 </html>

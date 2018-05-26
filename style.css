@@ -1,9 +1,8 @@
 body {
     background-color: #34303B;
-    width: 400px;
+    width: 800px;
     margin-left: 13px;
     font-family: 'Ubuntu', sans-serif;
-    /*-webkit-text-stroke: 1px black;*/
     color: white;
     text-shadow:
             -2px -2px 0 #000,
