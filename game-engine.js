@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // to do:
-    // 0. Make classes prettier
-    // 1. Fix double popup
+    // 1. Make classes prettier
+    // 2. Add personal leaderboard
 
 
     class Game {
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.speed = 8;
             this.direction = 'up';
             this.wallWalkThrough = false;
-            this.tailEat = true;
+            this.tailEat = false;
             this.gameOn = false;
             this.pauseOn = false;
             this.firstTimeStamp = 0;
@@ -233,7 +233,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (desiredSize.width < 380) {
-                alert('It\'s strongly advised to use larger window.');
+                document.querySelector('#warning').style.display = 'block';
+            } else {
+                document.querySelector('#warning').style.display = 'none';
             }
 
             this.canvas.width = desiredSize.width;

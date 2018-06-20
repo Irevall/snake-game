@@ -23,6 +23,10 @@ h1 {
             2px 2px 0 #000;
 }
 
+#container > #options > h3 > span:not(.option-name) {
+    cursor: pointer;
+}
+
 .in-game:before {
     content: 'Current ';
 }
